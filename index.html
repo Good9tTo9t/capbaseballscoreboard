@@ -3,22 +3,481 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <title>My Web Project</title>
-    
-    <!-- Link to external CSS -->
-    <link rel="stylesheet" href="style.css">
+    <title>Baseball Scoreboard</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #222;
+            color: white;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .scoreboard-container {
+            display: flex;
+            background-color: #000;
+            border: 2px solid #444;
+            border-radius: 8px;
+            overflow: hidden;
+            width: 700px;
+            height: 120px;
+            margin-bottom: 20px;
+        }
+
+        /* Teams Section */
+        .teams-section {
+            display: flex;
+            flex-direction: column;
+            width: 200px;
+            font-weight: bold;
+            font-size: 32px;
+        }
+
+        .team-row {
+            display: flex;
+            flex: 1;
+            align-items: center;
+        }
+
+        .team-name {
+            width: 100px;
+            text-align: center;
+            outline: none;
+            cursor: text;
+        }
+
+        .team-score {
+            flex: 1;
+            text-align: center;
+            background-color: #fffc00;
+            color: black;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .team-row.top {
+            background-color: #fffc00; /* Yellow */
+            color: black;
+        }
+
+        .team-row.top .team-score {
+             border-left: 1px solid #ccc;
+        }
+
+        .team-row.bottom {
+            background-color: #e66c00; /* Orange */
+            color: white;
+        }
+        
+        .team-row.bottom .team-score {
+            background-color: #fffc00;
+            color: black;
+            border-left: 1px solid #ccc;
+        }
+
+        /* Count Section */
+        .count-section {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            padding-left: 20px;
+            border-right: 2px solid #444;
+        }
+
+        .count-row {
+            display: flex;
+            align-items: center;
+            margin: 4px 0;
+            font-size: 20px;
+            font-weight: bold;
+        }
+
+        .count-label {
+            width: 20px;
+            margin-right: 10px;
+        }
+
+        .indicator {
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background-color: #333;
+            margin-right: 8px;
+        }
+
+        .indicator.ball.active { background-color: #00ff00; }
+        .indicator.strike.active { background-color: #ffff00; }
+        .indicator.out.active { background-color: #ff0000; }
+
+        /* Diamond Section */
+        .diamond-section {
+            width: 200px;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .diamond {
+            position: relative;
+            width: 60px;
+            height: 60px;
+            transform: rotate(45deg);
+            margin-bottom: 20px;
+            margin-top: 10px;
+        }
+
+        .base {
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            background-color: #444;
+        }
+
+        .base.active {
+            background-color: #ffff00; /* Yellow for occupied */
+        }
+
+        /* Rotated diamond:
+         top corner is 2nd base
+         right corner is 1st base
+         left corner is 3rd base 
+         bottom corner is home (not shown)
+        */
+        #base2 { top: 0; left: 0; }
+        #base1 { top: 0; right: 0; }
+        #base3 { bottom: 0; left: 0; }
+
+        .inning-indicator {
+            position: absolute;
+            bottom: 10px;
+            font-size: 24px;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+        }
+
+        .arrow {
+            margin-right: 5px;
+            font-size: 20px;
+        }
+
+        /* Controls Section */
+        .controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            width: 700px;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+
+        button {
+            padding: 10px 15px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            border: none;
+            border-radius: 4px;
+            background-color: #444;
+            color: white;
+            transition: background-color 0.2s;
+        }
+
+        button:hover { background-color: #666; }
+        .btn-ball { background-color: #1a6b27; }
+        .btn-strike { background-color: #8a8700; }
+        .btn-out { background-color: #8a1a1a; }
+        .btn-hit { background-color: #005f9e; }
+        .btn-undo { background-color: #555; }
+
+        .legend {
+            background-color: #333;
+            padding: 15px;
+            border-radius: 8px;
+            width: 670px;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+        .legend span {
+            display: inline-block;
+            background-color: #555;
+            padding: 2px 6px;
+            border-radius: 4px;
+            margin: 0 4px;
+            font-family: monospace;
+        }
+    </style>
 </head>
 <body>
-    
-    <header>
-        <h1>Hello, World!</h1>
-    </header>
 
-    <main>
-        <p>This is a starter boilerplate.</p>
-    </main>
+    <div class="scoreboard-container">
+        <!-- Teams -->
+        <div class="teams-section">
+            <div class="team-row top">
+                <div class="team-name" contenteditable="true" id="team1Name">B</div>
+                <div class="team-score" id="team1Score">0</div>
+            </div>
+            <div class="team-row bottom">
+                <div class="team-name" contenteditable="true" id="team2Name">UL</div>
+                <div class="team-score" id="team2Score">0</div>
+            </div>
+        </div>
 
-    <script src="script.js"></script>
+        <!-- Count -->
+        <div class="count-section">
+            <div class="count-row">
+                <div class="count-label">B</div>
+                <div class="indicator ball" id="b1"></div>
+                <div class="indicator ball" id="b2"></div>
+                <div class="indicator ball" id="b3"></div>
+            </div>
+            <div class="count-row">
+                <div class="count-label">S</div>
+                <div class="indicator strike" id="s1"></div>
+                <div class="indicator strike" id="s2"></div>
+            </div>
+            <div class="count-row">
+                <div class="count-label">O</div>
+                <div class="indicator out" id="o1"></div>
+                <div class="indicator out" id="o2"></div>
+            </div>
+        </div>
+
+        <!-- Bases & Inning -->
+        <div class="diamond-section">
+            <div class="diamond">
+                <div class="base" id="base2"></div> <!-- 2nd Base -->
+                <div class="base" id="base1"></div> <!-- 1st Base -->
+                <div class="base" id="base3"></div> <!-- 3rd Base -->
+            </div>
+            <div class="inning-indicator">
+                <span class="arrow" id="inningArrow">▼</span>
+                <span id="inningNum">3</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Buttons -->
+    <div class="controls">
+        <button class="btn-ball" onclick="addBall()">Ball (B)</button>
+        <button class="btn-strike" onclick="addStrike()">Strike (S)</button>
+        <button class="btn-out" onclick="addOut()">Out (O)</button>
+        <button class="btn-hit" onclick="hit(1)">Single (1)</button>
+        <button class="btn-hit" onclick="hit(2)">Double (2)</button>
+        <button class="btn-hit" onclick="hit(3)">Triple (3)</button>
+        <button class="btn-hit" onclick="hit(4)">Home Run (4)</button>
+        <button onclick="wildPitch()">Wild Pitch (W)</button>
+        <button class="btn-undo" onclick="undo()">Undo (U)</button>
+    </div>
+
+    <!-- Legend -->
+    <div class="legend">
+        <strong>Keyboard Controls:</strong><br>
+        <span>B</span> = Ball &nbsp;|&nbsp; 
+        <span>S</span> = Strike &nbsp;|&nbsp; 
+        <span>O</span> = Out &nbsp;|&nbsp; 
+        <span>1</span> = Single &nbsp;|&nbsp; 
+        <span>2</span> = Double &nbsp;|&nbsp; 
+        <span>3</span> = Triple &nbsp;|&nbsp; 
+        <span>4</span> = Home Run &nbsp;|&nbsp; 
+        <span>W</span> = Wild Pitch &nbsp;|&nbsp; 
+        <span>U</span> = Undo <br><br>
+        <em>Tip: Click the team names ('B' and 'UL') to edit them directly!</em>
+    </div>
+
+    <script>
+        let state = {
+            team1Score: 0,
+            team2Score: 0,
+            inning: 3,
+            topHalf: false,
+            balls: 2,
+            strikes: 2,
+            outs: 1,
+            bases: [false, true, false] // 1st, 2nd, 3rd
+        };
+
+        let historyStack = [];
+
+        function saveState() {
+            historyStack.push(JSON.parse(JSON.stringify(state)));
+        }
+
+        function undo() {
+            if (historyStack.length > 0) {
+                state = historyStack.pop();
+                updateUI();
+            }
+        }
+
+        function addRun(count = 1) {
+            if (state.topHalf) {
+                state.team1Score += count;
+            } else {
+                state.team2Score += count;
+            }
+        }
+
+        function clearBases() {
+            state.bases = [false, false, false];
+        }
+
+        function resetCount() {
+            state.balls = 0;
+            state.strikes = 0;
+        }
+
+        function addBall() {
+            saveState();
+            state.balls++;
+            if (state.balls >= 4) {
+                // Walk Logic
+                if (state.bases[0]) {
+                    if (state.bases[1]) {
+                        if (state.bases[2]) {
+                            addRun(); // Bases loaded walk
+                        }
+                        state.bases[2] = true;
+                    }
+                    state.bases[1] = true;
+                }
+                state.bases[0] = true;
+                resetCount();
+            }
+            updateUI();
+        }
+
+        function addStrike() {
+            saveState();
+            state.strikes++;
+            if (state.strikes >= 3) {
+                historyStack.pop(); // Remove the strike save, out will save
+                addOut();
+                return;
+            }
+            updateUI();
+        }
+
+        function addOut() {
+            saveState();
+            state.outs++;
+            if (state.outs >= 3) {
+                state.outs = 0;
+                resetCount();
+                clearBases();
+                if (state.topHalf) {
+                    state.topHalf = false;
+                } else {
+                    state.topHalf = true;
+                    state.inning++;
+                }
+            }
+            updateUI();
+        }
+
+        function hit(basesScored) {
+            saveState();
+            let runs = 0;
+            let newBases = [false, false, false];
+
+            // Advance existing runners
+            for (let i = 2; i >= 0; i--) {
+                if (state.bases[i]) {
+                    let dest = i + basesScored;
+                    if (dest > 2) runs++;
+                    else newBases[dest] = true;
+                }
+            }
+
+            // Advance batter
+            if (basesScored === 4) {
+                runs++; // Home run
+            } else if (basesScored > 0 && basesScored <= 3) {
+                newBases[basesScored - 1] = true;
+            }
+
+            addRun(runs);
+            state.bases = newBases;
+            resetCount();
+            updateUI();
+        }
+
+        function wildPitch() {
+            saveState();
+            let runs = 0;
+            let newBases = [false, false, false];
+            
+            // Runners advance 1 base
+            for (let i = 2; i >= 0; i--) {
+                if (state.bases[i]) {
+                    if (i + 1 > 2) runs++;
+                    else newBases[i + 1] = true;
+                }
+            }
+            addRun(runs);
+            state.bases = newBases;
+            // Does NOT reset the count
+            updateUI();
+        }
+
+        function updateUI() {
+            // Scores
+            document.getElementById('team1Score').innerText = state.team1Score;
+            document.getElementById('team2Score').innerText = state.team2Score;
+
+            // Inning
+            document.getElementById('inningNum').innerText = state.inning;
+            document.getElementById('inningArrow').innerText = state.topHalf ? '▲' : '▼';
+
+            // Balls
+            for (let i = 1; i <= 3; i++) {
+                document.getElementById(`b${i}`).classList.toggle('active', i <= state.balls);
+            }
+
+            // Strikes
+            for (let i = 1; i <= 2; i++) {
+                document.getElementById(`s${i}`).classList.toggle('active', i <= state.strikes);
+            }
+
+            // Outs
+            for (let i = 1; i <= 2; i++) {
+                document.getElementById(`o${i}`).classList.toggle('active', i <= state.outs);
+            }
+
+            // Bases
+            document.getElementById('base1').classList.toggle('active', state.bases[0]);
+            document.getElementById('base2').classList.toggle('active', state.bases[1]);
+            document.getElementById('base3').classList.toggle('active', state.bases[2]);
+        }
+
+        // Keyboard Event Listener
+        window.addEventListener('keydown', function(e) {
+            // Ignore if user is typing in a team name
+            if (document.activeElement.isContentEditable) return;
+
+            const key = e.key.toLowerCase();
+            switch (key) {
+                case 'b': addBall(); break;
+                case 's': addStrike(); break;
+                case 'o': addOut(); break;
+                case '1': hit(1); break;
+                case '2': hit(2); break;
+                case '3': hit(3); break;
+                case '4': hit(4); break;
+                case 'w': wildPitch(); break;
+                case 'u': undo(); break;
+            }
+        });
+
+        // Initial render
+        updateUI();
+    </script>
 </body>
 </html>
