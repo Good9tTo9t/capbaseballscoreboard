@@ -386,9 +386,9 @@
         function addOut() {
             saveState();
             state.outs++;
+            resetCount();
             if (state.outs >= 3) {
                 state.outs = 0;
-                resetCount();
                 clearBases();
                 if (state.topHalf) {
                     state.topHalf = false;
