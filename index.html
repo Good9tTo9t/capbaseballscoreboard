@@ -21,7 +21,7 @@
             border: 2px solid #444;
             border-radius: 8px;
             overflow: hidden;
-            width: 700px;
+            width: 500px;
             height: 120px;
             margin-bottom: 20px;
         }
@@ -42,7 +42,7 @@
         }
 
         .team-name {
-            width: 100px;
+            width: 300px;
             text-align: center;
             outline: none;
             cursor: text;
@@ -60,7 +60,7 @@
         }
 
         .team-row.top {
-            background-color: #fffc00; /* Yellow */
+            background-color: #ff0000;
             color: black;
         }
 
@@ -69,12 +69,12 @@
         }
 
         .team-row.bottom {
-            background-color: #e66c00; /* Orange */
+            background-color: #0044ff;
             color: white;
         }
         
         .team-row.bottom .team-score {
-            background-color: #fffc00;
+            background-color: #ffffff;
             color: black;
             border-left: 1px solid #ccc;
         }
@@ -296,12 +296,12 @@
         let state = {
             team1Score: 0,
             team2Score: 0,
-            inning: 3,
+            inning: 1,
             topHalf: false,
-            balls: 2,
-            strikes: 2,
-            outs: 1,
-            bases: [false, true, false] // 1st, 2nd, 3rd
+            balls: 0,
+            strikes: 0,
+            outs: 0,
+            bases: [false, false, false] // 1st, 2nd, 3rd
         };
 
         let historyStack = [];
@@ -360,6 +360,7 @@
             if (state.strikes >= 3) {
                 historyStack.pop(); // Remove the strike save, out will save
                 addOut();
+                resetCount();
                 return;
             }
             updateUI();
