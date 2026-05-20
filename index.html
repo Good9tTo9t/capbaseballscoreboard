@@ -294,6 +294,12 @@
     </div>
 
     <script>
+
+        window.addEventListener('beforeunload', (e) => {
+            e.preventDefault();
+            e.returnValue = '';
+        });
+
         let state = {
             team1Score: 0,
             team2Score: 0,
